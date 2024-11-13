@@ -1,8 +1,13 @@
+import sqlite3
+
 import requests as re
 import selectorlib
 import smtplib, ssl
 import os
 import time
+
+connection = sqlite3.connect("data.db")
+
 
 PASSWORD = os.getenv('PASSWORD')
 URL = 'https://programmer100.pythonanywhere.com/tours/'
@@ -36,14 +41,31 @@ def send_email(message):
 		server.sendmail(username, receiver, message)
 
 def store(extracted):
-	with open("data.txt", 'a') as file:
-		file.write(extracted + '\n')
+	row = extracted.split(", ")
+	cursor = connection.cursor()
+	cursor.execute("INSERT INTO events VALUES(?,?,?)", row)
 
 
-def read(check):
-	with open("data.txt", 'r') as file:
-		file_content = file.readlines()
-	return file_content
+
+# def store(extracted): ## STORE IN TEXT FILE
+# 	with open("data.txt", 'a') as file:
+# 		file.write(extracted + '\n')
+
+
+# def read(): ##Read from text file
+# 	with open("data.txt", 'r') as file:
+# 		file_content = file.read()
+# 	return file_content
+
+def read(extracted):
+	row = extracted.split(", ")
+	# band, city, date = row[0], row[1], row[2]
+	band, city, date = row
+	cursor = connection.cursor()
+	cursor.execute("SELECT * FROM events WHERE band=? AND city = ? AND date = ?", (band, city, date))
+	rows = cursor.fetchall()
+	print(rows)
+	return rows
 
 if __name__ == '__main__':
 	while True:
@@ -51,12 +73,11 @@ if __name__ == '__main__':
 		extracted = extract(scraped)
 		print(extracted)
 
-		content = read(extracted)
 		to_send = "Subject: Scrapped" + '\n'
 		if extracted != "No upcoming tours":
-			if extracted not in content:
+			row = read(extracted)
+			if not row:
 				store(extracted)
 				to_send = to_send + extracted
 				send_email(to_send)
-
 		time.sleep(5)
