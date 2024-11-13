@@ -44,6 +44,9 @@ def store(extracted):
 	row = extracted.split(", ")
 	cursor = connection.cursor()
 	cursor.execute("INSERT INTO events VALUES(?,?,?)", row)
+	print("store() called", row)
+	connection.commit()
+
 
 
 
@@ -58,6 +61,8 @@ def store(extracted):
 # 	return file_content
 
 def read(extracted):
+	#### .fetchall() RETURNS A LIST OF STRINGS WHEN USED WITH execute AND RETURNS A LIST OF TUPLES
+	#### WHEN USED WHIT executemany
 	row = extracted.split(", ")
 	# band, city, date = row[0], row[1], row[2]
 	band, city, date = row
@@ -67,13 +72,14 @@ def read(extracted):
 	print(rows)
 	return rows
 
+
 if __name__ == '__main__':
 	while True:
 		scraped = scrape(URL)
 		extracted = extract(scraped)
 		print(extracted)
 
-		to_send = "Subject: Scrapped" + '\n'
+		to_send = "Subject: New event in Pythonanywhere" + '\n'
 		if extracted != "No upcoming tours":
 			row = read(extracted)
 			if not row:
