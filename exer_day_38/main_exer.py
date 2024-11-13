@@ -2,6 +2,9 @@ from datetime import datetime
 import time
 import requests as re
 import selectorlib
+import sqlite3
+connection = sqlite3.connect('exer_38.db')
+
 
 URL = 'https://automated.pythonanywhere.com/'
 HEADERS = {
@@ -19,11 +22,16 @@ def extractor(source):
 	value = extractor.extract(source)["tours"]
 	return value
 
+### WRITE IN FILE
+# def write_in_file(content):
+# 	with open("storage.txt", 'a') as f:
+# 		f.write(content)
 
-def write_in_file(content):
-	with open("storage.txt", 'a') as f:
-		f.write(content)
-
+def write_db(content):
+	cursor = connection.cursor()
+	col1, col2 = content
+	cursor.execute("INSERT INTO exer VALUES(?,?)",(col1,col2))
+	connection.commit()
 
 def read_from_file():
 	with open("storage.txt", 'r') as f:
@@ -40,7 +48,11 @@ if __name__ == "__main__":
 		scraped = scrape(URL)
 		extracted = extractor(scraped)
 		timestamp = time_stamp()
-		content = f"{extracted}, {timestamp}\n"
-		write_in_file(content)
+		content = (extracted, timestamp)
+		# content = f"{extracted}, {timestamp}\n"
+		col1, col2 = content
+		print(col1, col2)
+		# write_in_file(content)
+		write_db(content)
 		print(content)
 		time.sleep(3)
